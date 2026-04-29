@@ -17,7 +17,14 @@ export function App() {
   }, []);
 
   return (
-    <main style={{ fontFamily: "system-ui, sans-serif", padding: "2rem", maxWidth: 720, margin: "0 auto" }}>
+    <main
+      style={{
+        fontFamily: "system-ui, sans-serif",
+        padding: "2rem",
+        maxWidth: 720,
+        margin: "0 auto",
+      }}
+    >
       <h1>Helpdesk</h1>
       <p>Express + React + TypeScript + Bun</p>
       <section>
@@ -25,7 +32,14 @@ export function App() {
         {error && <p style={{ color: "crimson" }}>Error: {error}</p>}
         {!error && !health && <p>Checking...</p>}
         {health && (
-          <pre style={{ background: "#f4f4f5", padding: "1rem", borderRadius: 8 }}>
+          <pre
+            style={{
+              background: "#f4f4f5",
+              padding: "1rem",
+              borderRadius: 8,
+              color: "black",
+            }}
+          >
             {JSON.stringify(health, null, 2)}
           </pre>
         )}
