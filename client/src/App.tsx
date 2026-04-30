@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 
 type Health = { status: string; uptime: number };
+type DbHealth = { status: string; db: string };
 
 export function App() {
   const [health, setHealth] = useState<Health | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [dbHealth, setDbHealth] = useState<DbHealth | null>(null);
+  const [dbError, setDbError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/health")
@@ -14,6 +17,14 @@ export function App() {
       })
       .then(setHealth)
       .catch((e: Error) => setError(e.message));
+
+      fetch("/api/db-health")
+        .then((r) => {
+          if (!r.ok) throw new Error(`HTTP ${r.status}`);
+          return r.json() as Promise<DbHealth>;
+        })
+        .then(setDbHealth)
+        .catch((e: Error) => setDbError(e.message));
   }, []);
 
   return (
@@ -41,6 +52,23 @@ export function App() {
             }}
           >
             {JSON.stringify(health, null, 2)}
+          </pre>
+        )}
+      </section>
+      <section>
+        <h2>DB status</h2>
+        {dbError && <p style={{ color: "crimson" }}>Error: {dbError}</p>}
+        {!dbError && !dbHealth && <p>Checking...</p>}
+        {dbHealth && (
+          <pre
+            style={{
+              background: "#f4f4f5",
+              padding: "1rem",
+              borderRadius: 8,
+              color: "black",
+            }}
+          >
+            {JSON.stringify(dbHealth, null, 2)}
           </pre>
         )}
       </section>
