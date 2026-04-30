@@ -1,0 +1,49 @@
+services:
+  postgres:
+    # see https://hub.docker.com/_/postgres for list of postgres image versions on docker hub
+    #image: postgres:latest # To download the latest image
+    #image: postgres:17.4-alpine # To download a specific version, here the version 17.4 of Postgresql under an alpine linux distribution
+    image: postgres:17.4 # To download a specific version, here the version 17.4 of Postgresql
+    container_name: ecomapp-postgres
+    volumes:
+      - ./docker-volumes/postgresql-data:/var/lib/postgresql/data
+      - ./db:/docker-entrypoint-initdb.d
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432" # HOST_PORT:CONTAINER_PORT
+    networks:
+      - ecomapp-network
+  pgadmin:
+    # see https://hub.docker.com/r/dpage/pgadmin4
+    image: dpage/pgadmin4:latest # To download the latest image
+    container_name: ecomapp-pgadmin
+    volumes:
+      - pgadmin_working_dir:/var/lib/pgadmin
+      - pgadmin_config_dir:/pgadmin4
+    env_file:
+      - .env
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      - postgres
+    ports:
+      - "5433:80" # HOST_PORT:CONTAINER_PORT
+    networks:
+      - ecomapp-network
+
+volumes:
+  pgadmin_working_dir:
+    driver: local
+  pgadmin_config_dir:
+    driver: local
+
+networks:
+  ecomapp-network:
+    driver: bridge

@@ -20,6 +20,15 @@ This project requires [bun](https://bun.com/package-manager) to be installed.
 bun install
 ```
 
+### Data Persistence
+
+For data persistence, this project uses Docker containers for PostgreSQL and pgAdmin. To start the docker containers, run: `docker compose up`
+
+* PostgreSQL is available at localhost:5432
+* pgAdmin is accessible at http://localhost:5433
+  * create a connection to the server at `postgres:5432`
+* see `.env` for credentials
+
 ## Develop
 
 Run both apps in parallel:
