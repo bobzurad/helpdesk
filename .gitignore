@@ -6,3 +6,9 @@ bun.lock
 .DS_Store
 *.log
 .vite
+
+# Prisma generated client
+server/prisma/generated/
+
+# Postgres docker volume
+docker-volumes/
