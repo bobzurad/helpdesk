@@ -12,7 +12,9 @@ helpdesk/
 
 ## Prequisites
 
-This project requires [bun](https://bun.com/package-manager) to be installed.
+This project requires the following to be installed:
+* Docker
+* [bun](https://bun.com/package-manager) 
 
 ## Setup
 
