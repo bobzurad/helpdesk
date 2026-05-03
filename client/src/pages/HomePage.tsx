@@ -28,46 +28,27 @@ export function HomePage() {
   }, []);
 
   return (
-    <main
-      style={{
-        fontFamily: "system-ui, sans-serif",
-        padding: "2rem",
-        maxWidth: 720,
-        margin: "0 auto",
-      }}
-    >
-      <h1>Helpdesk</h1>
-      <p>Express + React + TypeScript + Bun</p>
-      <section>
-        <h2>Server status</h2>
-        {error && <p style={{ color: "crimson" }}>Error: {error}</p>}
-        {!error && !health && <p>Checking...</p>}
+    <main className="mx-auto max-w-3xl p-8">
+      <h1 className="text-2xl font-semibold">Helpdesk</h1>
+      <p className="mt-1 text-zinc-600 dark:text-zinc-400">
+        Express + React + TypeScript + Bun
+      </p>
+      <section className="mt-6">
+        <h2 className="text-lg font-medium">Server status</h2>
+        {error && <p className="mt-2 text-red-700">Error: {error}</p>}
+        {!error && !health && <p className="mt-2">Checking...</p>}
         {health && (
-          <pre
-            style={{
-              background: "#f4f4f5",
-              padding: "1rem",
-              borderRadius: 8,
-              color: "black",
-            }}
-          >
+          <pre className="mt-2 rounded-lg bg-zinc-100 p-4 text-black">
             {JSON.stringify(health, null, 2)}
           </pre>
         )}
       </section>
-      <section>
-        <h2>DB status</h2>
-        {dbError && <p style={{ color: "crimson" }}>Error: {dbError}</p>}
-        {!dbError && !dbHealth && <p>Checking...</p>}
+      <section className="mt-6">
+        <h2 className="text-lg font-medium">DB status</h2>
+        {dbError && <p className="mt-2 text-red-700">Error: {dbError}</p>}
+        {!dbError && !dbHealth && <p className="mt-2">Checking...</p>}
         {dbHealth && (
-          <pre
-            style={{
-              background: "#f4f4f5",
-              padding: "1rem",
-              borderRadius: 8,
-              color: "black",
-            }}
-          >
+          <pre className="mt-2 rounded-lg bg-zinc-100 p-4 text-black">
             {JSON.stringify(dbHealth, null, 2)}
           </pre>
         )}

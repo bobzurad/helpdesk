@@ -4,13 +4,7 @@ import { authClient } from "../lib/auth-client";
 export function RequireAuth() {
   const { data: session, isPending } = authClient.useSession();
 
-  if (isPending) {
-    return (
-      <p style={{ padding: "2rem", fontFamily: "system-ui, sans-serif" }}>
-        Loading…
-      </p>
-    );
-  }
+  if (isPending) return <p className="p-8">Loading…</p>;
 
   if (!session) return <Navigate to="/login" replace />;
 

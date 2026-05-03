@@ -11,31 +11,14 @@ export function NavBar() {
   };
 
   return (
-    <nav
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "1rem 2rem",
-        borderBottom: "1px solid #e4e4e7",
-        fontFamily: "system-ui, sans-serif",
-      }}
-    >
+    <nav className="flex items-center justify-between border-b border-zinc-200 px-8 py-4 dark:border-zinc-800">
       <strong>Helpdesk</strong>
-      <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+      <div className="flex items-center gap-4">
         {session && <span>{session.user.name}</span>}
         <button
           type="button"
           onClick={handleSignOut}
-          style={{
-            padding: "0.4rem 0.8rem",
-            border: "1px solid #d4d4d8",
-            borderRadius: 6,
-            background: "transparent",
-            color: "inherit",
-            cursor: "pointer",
-            font: "inherit",
-          }}
+          className="cursor-pointer rounded-md border border-zinc-300 px-3 py-1.5 hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800"
         >
           Sign out
         </button>

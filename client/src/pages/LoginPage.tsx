@@ -24,13 +24,7 @@ export function LoginPage() {
     defaultValues: { email: "", password: "" },
   });
 
-  if (isPending) {
-    return (
-      <p style={{ padding: "2rem", fontFamily: "system-ui, sans-serif" }}>
-        Loading…
-      </p>
-    );
-  }
+  if (isPending) return <p className="p-8">Loading…</p>;
 
   if (session) return <Navigate to="/" replace />;
 
@@ -43,72 +37,54 @@ export function LoginPage() {
     navigate("/", { replace: true });
   };
 
+  const inputClass = (invalid: boolean) =>
+    `rounded border px-3 py-2 ${
+      invalid
+        ? "border-red-600"
+        : "border-zinc-300 dark:border-zinc-700"
+    }`;
+
   return (
-    <main
-      style={{
-        fontFamily: "system-ui, sans-serif",
-        padding: "2rem",
-        maxWidth: 360,
-        margin: "4rem auto",
-      }}
-    >
-      <h1 style={{ marginBottom: "1.5rem" }}>Sign in</h1>
+    <main className="mx-auto mt-16 max-w-sm p-8">
+      <h1 className="mb-6 text-2xl font-semibold">Sign in</h1>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+        className="flex flex-col gap-4"
         noValidate
       >
-        <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <label className="flex flex-col gap-1">
           <span>Email</span>
           <input
             type="email"
             autoComplete="email"
             aria-invalid={errors.email ? true : undefined}
             {...register("email")}
-            style={{
-              padding: "0.5rem",
-              font: "inherit",
-              border: `1px solid ${errors.email ? "crimson" : "#d4d4d8"}`,
-              borderRadius: 4,
-            }}
+            className={inputClass(Boolean(errors.email))}
           />
           {errors.email && (
-            <span style={{ color: "crimson", fontSize: "0.875rem" }}>
-              {errors.email.message}
-            </span>
+            <span className="text-sm text-red-700">{errors.email.message}</span>
           )}
         </label>
-        <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <label className="flex flex-col gap-1">
           <span>Password</span>
           <input
             type="password"
             autoComplete="current-password"
             aria-invalid={errors.password ? true : undefined}
             {...register("password")}
-            style={{
-              padding: "0.5rem",
-              font: "inherit",
-              border: `1px solid ${errors.password ? "crimson" : "#d4d4d8"}`,
-              borderRadius: 4,
-            }}
+            className={inputClass(Boolean(errors.password))}
           />
           {errors.password && (
-            <span style={{ color: "crimson", fontSize: "0.875rem" }}>
+            <span className="text-sm text-red-700">
               {errors.password.message}
             </span>
           )}
         </label>
-        {errors.root && (
-          <p style={{ color: "crimson", margin: 0 }}>{errors.root.message}</p>
-        )}
+        {errors.root && <p className="text-red-700">{errors.root.message}</p>}
         <button
           type="submit"
           disabled={isSubmitting}
-          style={{
-            padding: "0.6rem",
-            font: "inherit",
-            cursor: isSubmitting ? "not-allowed" : "pointer",
-          }}
+          className="cursor-pointer rounded border border-zinc-300 px-4 py-2 hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-700 dark:hover:bg-zinc-800"
         >
           {isSubmitting ? "Signing in…" : "Sign in"}
         </button>
