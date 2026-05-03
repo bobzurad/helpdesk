@@ -55,3 +55,12 @@ bun --filter @helpdesk/client dev
 bun run build       # build both packages
 bun run typecheck   # typecheck both packages
 ```
+
+## Creating Users
+
+To create users, run the following script:
+```bash
+bun --filter @helpdesk/server create-user --email=agent@example.com --password=password123 --name="Agent Smith"                                  
+```        
+
+--role defaults to AGENT; pass --role=ADMIN to override. Fails if the email is already in use.        

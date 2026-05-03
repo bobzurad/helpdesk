@@ -1,0 +1,14 @@
+import { Navigate, Outlet } from "react-router";
+import { authClient } from "../lib/auth-client";
+
+export function RequireAdmin() {
+  const { data: session, isPending } = authClient.useSession();
+
+  if (isPending) return <p className="p-8">Loading…</p>;
+
+  if (!session) return <Navigate to="/login" replace />;
+
+  if (session.user.role !== "ADMIN") return <Navigate to="/" replace />;
+
+  return <Outlet />;
+}

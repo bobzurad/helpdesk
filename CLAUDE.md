@@ -81,7 +81,18 @@ bun --filter @helpdesk/server prisma db seed
 # email/password come from SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD in .env
 ```
 
-The seed (`server/prisma/seed.ts`) uses `auth.$context.password.hash()` to hash the password and writes both a `User` and an `Account` row (with `providerId: "credential"`) inside a transaction. To add additional users, extend the seed or temporarily flip `disableSignUp` — don't ship a public sign-up form unless the project intent changes.
+The seed (`server/prisma/seed.ts`) uses `auth.$context.password.hash()` to hash the password and writes both a `User` and an `Account` row (with `providerId: "credential"`) inside a transaction. To add additional users, use the create-user script (below) — don't ship a public sign-up form unless the project intent changes.
+
+### Creating additional users
+
+Use the create-user script (`server/scripts/create-user.ts`):
+
+```bash
+bun --filter @helpdesk/server create-user \
+  --email=agent@example.com --password=changeme --name="Agent Smith" --role=AGENT
+```
+
+`--role` defaults to `AGENT` and accepts `ADMIN | AGENT`. The script fails if the email already exists, hashes the password via `auth.$context.password.hash()`, and writes the `User` + credential `Account` rows in a transaction (same pattern as the seed).
 
 ## Fetching up-to-date docs (Context7)
 
