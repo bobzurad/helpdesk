@@ -47,7 +47,41 @@ Dev URLs: server `http://localhost:3001`, client `http://localhost:5173`. The Vi
 - Server uses native ESM (`"type": "module"`); use `import` syntax, not `require`.
 - Client uses `tsconfig` project references (`tsconfig.app.json` for `src/`, `tsconfig.node.json` for `vite.config.ts`).
 - API routes are prefixed with `/api/` so the Vite proxy matches them.
-- Auth will be database-backed sessions (not JWT) per `tech-stack.md`.
+
+## Authentication
+
+Database-backed sessions via [Better Auth](https://www.better-auth.com/) with the Prisma adapter (PostgreSQL). No JWTs — session cookies are stored in the `session` table.
+
+### Server (`server/src/auth.ts`, `server/src/index.ts`)
+
+- Email + password only (`emailAndPassword.enabled: true`). **Sign-up is disabled** (`disableSignUp: true`) — new users are created via the seed script or by an admin, never via a public form.
+- Custom user field `role` (`UserRole` enum: `ADMIN | AGENT`, default `AGENT`, `input: false` so it can't be set from the client).
+- Mounted at `/api/auth/*splat` (Express 5 catch-all syntax — note `*splat`, not `*`).
+- **Middleware order matters**: `app.all("/api/auth/*splat", toNodeHandler(auth))` MUST be registered **before** `app.use(express.json())`. Better Auth needs the raw request body; if `express.json()` runs first, auth requests break silently.
+- CORS is `origin: true, credentials: true` so the cookie session works across the Vite dev origin.
+- Trusted origins are set in `auth.ts` (`trustedOrigins: ["http://localhost:5173"]`) — the `BETTER_AUTH_TRUSTED_ORIGINS` env var also exists in `.env.example` but is not currently read by `auth.ts`.
+
+### Client (`client/src/lib/auth-client.ts`)
+
+- `createAuthClient()` from `better-auth/react`; exports `signIn`, `signOut`, `useSession`.
+- `LoginPage` uses `signIn.email({ email, password })` then redirects to `/`.
+- Protected routes are wrapped with `<RequireAuth>` (in `client/src/components/RequireAuth.tsx`), which calls `useSession()` and redirects to `/login` when there's no session.
+
+### Schema (`server/prisma/schema.prisma`)
+
+Standard Better Auth tables — `User`, `Session`, `Account`, `Verification` — plus the `role` column on `User`. Prisma client output is `server/prisma/generated/client/` (re-generate with `bun --filter @helpdesk/server db:generate`).
+
+### Local dev login
+
+The only credentials that work locally are the seeded admin:
+
+```bash
+# from server/, after `docker compose up -d` for Postgres + `bun --filter @helpdesk/server db:migrate`
+bun --filter @helpdesk/server prisma db seed
+# email/password come from SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD in .env
+```
+
+The seed (`server/prisma/seed.ts`) uses `auth.$context.password.hash()` to hash the password and writes both a `User` and an `Account` row (with `providerId: "credential"`) inside a transaction. To add additional users, extend the seed or temporarily flip `disableSignUp` — don't ship a public sign-up form unless the project intent changes.
 
 ## Fetching up-to-date docs (Context7)
 
