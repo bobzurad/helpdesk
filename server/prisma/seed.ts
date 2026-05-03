@@ -12,6 +12,12 @@ if (!email || !password) {
   );
 }
 
+if (password.length < 12 || /^(password|change[_-]?me)/i.test(password)) {
+  throw new Error(
+    "SEED_ADMIN_PASSWORD is too weak — use at least 12 characters and avoid common placeholders",
+  );
+}
+
 const existing = await prisma.user.findUnique({ where: { email } });
 
 if (existing) {

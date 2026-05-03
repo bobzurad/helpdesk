@@ -58,8 +58,9 @@ Database-backed sessions via [Better Auth](https://www.better-auth.com/) with th
 - Custom user field `role` (`UserRole` enum: `ADMIN | AGENT`, default `AGENT`, `input: false` so it can't be set from the client).
 - Mounted at `/api/auth/*splat` (Express 5 catch-all syntax — note `*splat`, not `*`).
 - **Middleware order matters**: `app.all("/api/auth/*splat", toNodeHandler(auth))` MUST be registered **before** `app.use(express.json())`. Better Auth needs the raw request body; if `express.json()` runs first, auth requests break silently.
-- CORS is `origin: true, credentials: true` so the cookie session works across the Vite dev origin.
-- Trusted origins are set in `auth.ts` (`trustedOrigins: ["http://localhost:5173"]`) — the `BETTER_AUTH_TRUSTED_ORIGINS` env var also exists in `.env.example` but is not currently read by `auth.ts`.
+- CORS uses an explicit allowlist driven by `CORS_ORIGINS` (comma-separated, defaults to `http://localhost:5173`) with `credentials: true` so the session cookie works across the Vite dev origin. Don't switch this back to `origin: true` — that reflects any origin and breaks the CSRF posture for non-Better-Auth routes.
+- Trusted origins are read from `BETTER_AUTH_TRUSTED_ORIGINS` (comma-separated, defaults to `http://localhost:5173`).
+- The Express app also mounts `helmet()` for baseline security headers and a global `express-rate-limit` (120 req/min/IP) on non-auth routes. Better Auth handles its own rate limiting on `/api/auth/*`.
 
 ### Client (`client/src/lib/auth-client.ts`)
 
@@ -77,6 +78,8 @@ The only credentials that work locally are the seeded admin:
 
 ```bash
 # from server/, after `docker compose up -d` for Postgres + `bun --filter @helpdesk/server db:migrate`
+# Set SEED_ADMIN_PASSWORD to a strong (≥12 char) value first — the seed refuses
+# weak/placeholder passwords (e.g. "password…", "CHANGE_ME…").
 bun --filter @helpdesk/server prisma db seed
 # email/password come from SEED_ADMIN_EMAIL / SEED_ADMIN_PASSWORD in .env
 ```
