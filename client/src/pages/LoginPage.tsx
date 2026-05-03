@@ -1,18 +1,28 @@
-import { useEffect, useState, type FormEvent } from "react";
 import { Navigate, useNavigate } from "react-router";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { authClient } from "../lib/auth-client";
+
+const schema = z.object({
+  email: z.email("Enter a valid email"),
+  password: z.string().min(1, "Password is required"),
+});
+
+type FormValues = z.infer<typeof schema>;
 
 export function LoginPage() {
   const navigate = useNavigate();
   const { data: session, isPending } = authClient.useSession();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    setError(null);
-  }, [email, password]);
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { email: "", password: "" },
+  });
 
   if (isPending) {
     return (
@@ -24,17 +34,10 @@ export function LoginPage() {
 
   if (session) return <Navigate to="/" replace />;
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setSubmitting(true);
-    setError(null);
-    const { error: signInError } = await authClient.signIn.email({
-      email,
-      password,
-    });
-    setSubmitting(false);
-    if (signInError) {
-      setError(signInError.message ?? "Sign in failed");
+  const onSubmit = async (values: FormValues) => {
+    const { error } = await authClient.signIn.email(values);
+    if (error) {
+      setError("root", { message: error.message ?? "Sign in failed" });
       return;
     }
     navigate("/", { replace: true });
@@ -51,42 +54,63 @@ export function LoginPage() {
     >
       <h1 style={{ marginBottom: "1.5rem" }}>Sign in</h1>
       <form
-        onSubmit={handleSubmit}
+        onSubmit={handleSubmit(onSubmit)}
         style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
+        noValidate
       >
         <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <span>Email</span>
           <input
             type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
             autoComplete="email"
-            style={{ padding: "0.5rem", font: "inherit" }}
+            aria-invalid={errors.email ? true : undefined}
+            {...register("email")}
+            style={{
+              padding: "0.5rem",
+              font: "inherit",
+              border: `1px solid ${errors.email ? "crimson" : "#d4d4d8"}`,
+              borderRadius: 4,
+            }}
           />
+          {errors.email && (
+            <span style={{ color: "crimson", fontSize: "0.875rem" }}>
+              {errors.email.message}
+            </span>
+          )}
         </label>
         <label style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <span>Password</span>
           <input
             type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
             autoComplete="current-password"
-            style={{ padding: "0.5rem", font: "inherit" }}
+            aria-invalid={errors.password ? true : undefined}
+            {...register("password")}
+            style={{
+              padding: "0.5rem",
+              font: "inherit",
+              border: `1px solid ${errors.password ? "crimson" : "#d4d4d8"}`,
+              borderRadius: 4,
+            }}
           />
+          {errors.password && (
+            <span style={{ color: "crimson", fontSize: "0.875rem" }}>
+              {errors.password.message}
+            </span>
+          )}
         </label>
-        {error && <p style={{ color: "crimson", margin: 0 }}>{error}</p>}
+        {errors.root && (
+          <p style={{ color: "crimson", margin: 0 }}>{errors.root.message}</p>
+        )}
         <button
           type="submit"
-          disabled={submitting}
+          disabled={isSubmitting}
           style={{
             padding: "0.6rem",
             font: "inherit",
-            cursor: submitting ? "not-allowed" : "pointer",
+            cursor: isSubmitting ? "not-allowed" : "pointer",
           }}
         >
-          {submitting ? "Signing in…" : "Sign in"}
+          {isSubmitting ? "Signing in…" : "Sign in"}
         </button>
       </form>
     </main>
