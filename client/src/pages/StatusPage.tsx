@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Health = { status: string; uptime: number };
 type DbHealth = { status: string; db: string };
@@ -71,7 +72,10 @@ function StatusCard<T extends { status: string }>({
           </Alert>
         )}
         {!error && !data && (
-          <p className="text-muted-foreground text-sm">Checking…</p>
+          <div className="space-y-2">
+            <Skeleton className="h-4 w-1/3" />
+            <Skeleton className="h-20 w-full" />
+          </div>
         )}
         {data && (
           <pre className="bg-muted text-muted-foreground overflow-x-auto rounded-md p-4 text-sm">

@@ -2,6 +2,7 @@ import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -39,10 +40,7 @@ export function UsersPage() {
           <AlertDescription>{error.message}</AlertDescription>
         </Alert>
       )}
-      {!error && !users && (
-        <p className="text-muted-foreground text-sm">Loading…</p>
-      )}
-      {users && (
+      {!error && (
         <Table>
           <TableHeader>
             <TableRow>
@@ -53,20 +51,39 @@ export function UsersPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.map((u) => (
-              <TableRow key={u.id}>
-                <TableCell>{u.name}</TableCell>
-                <TableCell>{u.email}</TableCell>
-                <TableCell>
-                  <Badge variant={u.role === "ADMIN" ? "default" : "secondary"}>
-                    {u.role}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  {new Date(u.createdAt).toLocaleDateString()}
-                </TableCell>
-              </TableRow>
-            ))}
+            {users
+              ? users.map((u) => (
+                  <TableRow key={u.id}>
+                    <TableCell>{u.name}</TableCell>
+                    <TableCell>{u.email}</TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={u.role === "ADMIN" ? "default" : "secondary"}
+                      >
+                        {u.role}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {new Date(u.createdAt).toLocaleDateString()}
+                    </TableCell>
+                  </TableRow>
+                ))
+              : Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      <Skeleton className="h-4 w-32" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-48" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-5 w-16 rounded-full" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-20" />
+                    </TableCell>
+                  </TableRow>
+                ))}
           </TableBody>
         </Table>
       )}
