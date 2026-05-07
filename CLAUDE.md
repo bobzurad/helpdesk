@@ -106,10 +106,11 @@ E2E tests live in the `e2e/` workspace and run against an isolated Postgres data
 
 ### Configuration
 
-- `e2e/playwright.config.ts` defines two `webServer` entries that boot the real server and client (`bun --filter` against the existing dev scripts). The server entry overrides `DATABASE_URL` with `TEST_DATABASE_URL` from `.env`, plus `CORS_ORIGINS` / `BETTER_AUTH_TRUSTED_ORIGINS` so cookies work against the test client URL.
-- `reuseExistingServer: false` — Playwright always boots fresh server processes pointing at the test DB, so it's safe to have `bun run dev` running alongside (the dev server stays on the dev DB).
+- `e2e/playwright.config.ts` defines two `webServer` entries that boot the real server and client (`bun --filter` against the existing dev scripts). The server entry overrides `DATABASE_URL` with `TEST_DATABASE_URL` from `.env`, plus `CORS_ORIGINS` / `BETTER_AUTH_TRUSTED_ORIGINS` / `PORT` so cookies and routing work against the test client URL.
+- `reuseExistingServer: false` — Playwright always boots fresh server processes pointing at the test DB, so it's safe to have `bun run dev` running alongside.
 - `workers: 1`, `fullyParallel: false` — single-worker by default since tests share one database. Tweak per-suite once tests exist.
-- `baseURL: http://localhost:5173` (override with `E2E_CLIENT_URL`). Server URL via `E2E_SERVER_URL` (default `http://localhost:3001`).
+- **E2E ports are distinct from dev** so the two can run side-by-side: e2e client is `http://localhost:3002` (dev: `:5173`) and e2e server is `http://localhost:5174` (dev: `:3001`). Override with `E2E_CLIENT_URL` / `E2E_SERVER_URL` if needed.
+- The client's Vite config (`client/vite.config.ts`) reads `VITE_DEV_PORT` and `VITE_API_PROXY_TARGET` from env (passed by the Playwright config), with `strictPort` enabled when those are set. The server reads `PORT` from env (defaults to `3001` when unset).
 
 ### Test database lifecycle
 

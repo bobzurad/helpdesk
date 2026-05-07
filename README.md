@@ -58,12 +58,13 @@ bun run typecheck   # typecheck both packages
 
 ## End to End Tests
 
-This project uses [Playwright](https://playwright.dev/) for end to end testing. Test scripts can be run with the following commands:
+This project uses [Playwright](https://playwright.dev/) for end to end testing. Before running the tests for the first time, you must run: `bun run test:e2e:install`
+
+Test scripts can be run with the following commands:
 
 ```bash
 bun run test:e2e
 bun run test:e2e:ui
-bun run test:e2e:install
 ```
 
 ## Creating Users

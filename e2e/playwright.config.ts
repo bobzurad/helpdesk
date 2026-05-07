@@ -15,8 +15,12 @@ if (!TEST_DATABASE_URL) {
   );
 }
 
-const SERVER_URL = process.env.E2E_SERVER_URL ?? "http://localhost:3001";
-const CLIENT_URL = process.env.E2E_CLIENT_URL ?? "http://localhost:5173";
+// E2E ports are deliberately distinct from the dev defaults (server :3001, client :5173)
+// so a running `bun run dev` doesn't collide with the Playwright-managed servers.
+const SERVER_URL = process.env.E2E_SERVER_URL ?? "http://localhost:5174";
+const CLIENT_URL = process.env.E2E_CLIENT_URL ?? "http://localhost:3002";
+const SERVER_PORT = new URL(SERVER_URL).port;
+const CLIENT_PORT = new URL(CLIENT_URL).port;
 
 export default defineConfig({
   testDir: "./tests",
@@ -26,6 +30,10 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? [["github"], ["html"]] : "html",
+  // Runs once after webServer is up, before any tests. Creates the AGENT
+  // user used by role-based tests. The test DB is already reset + seeded
+  // with the ADMIN by `bun run db:reset` (invoked from the `test` npm script).
+  globalSetup: resolve(__dirname, "global-setup.ts"),
 
   use: {
     baseURL: CLIENT_URL,
@@ -52,6 +60,7 @@ export default defineConfig({
       stderr: "pipe",
       env: {
         DATABASE_URL: TEST_DATABASE_URL,
+        PORT: SERVER_PORT,
         BETTER_AUTH_URL: SERVER_URL,
         CORS_ORIGINS: CLIENT_URL,
         BETTER_AUTH_TRUSTED_ORIGINS: CLIENT_URL,
@@ -65,6 +74,10 @@ export default defineConfig({
       reuseExistingServer: false,
       stdout: "pipe",
       stderr: "pipe",
+      env: {
+        VITE_DEV_PORT: CLIENT_PORT,
+        VITE_API_PROXY_TARGET: SERVER_URL,
+      },
     },
   ],
 });

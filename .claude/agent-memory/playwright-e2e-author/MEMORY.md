@@ -1,0 +1,5 @@
+- [Helpdesk e2e suite layout](e2e_suite_layout.md) — where tests, fixtures, helpers, and globalSetup live in the e2e workspace
+- [Auth fixtures and AGENT user creation](auth_fixtures.md) — how the seeded ADMIN and on-demand AGENT user are wired up
+- [shadcn/ui selector patterns](shadcn_selectors.md) — accessible-locator patterns that work for shadcn Alert/Button/Label/Card
+- [Better Auth probing from Playwright](better_auth_api.md) — endpoint shapes and cookie semantics observed in tests
+- [Running the e2e suite cleanly](running_e2e.md) — webServer constraints and conflicts with `bun run dev`
