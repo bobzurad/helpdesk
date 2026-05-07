@@ -31,6 +31,7 @@ bun install            # install all workspace deps
 bun run dev            # both apps in parallel (bun --filter '*' dev)
 bun run build          # build both packages
 bun run typecheck      # tsc --noEmit across both packages
+bun run test           # run client component tests (vitest)
 bun run test:e2e       # run Playwright e2e tests (resets the test DB first)
 ```
 
@@ -39,6 +40,8 @@ Per-workspace:
 ```bash
 bun --filter @helpdesk/server dev
 bun --filter @helpdesk/client dev
+bun --filter @helpdesk/client test         # one-shot vitest run
+bun --filter @helpdesk/client test:watch   # vitest watch mode
 bun --filter @helpdesk/e2e test
 ```
 
@@ -100,6 +103,42 @@ bun --filter @helpdesk/server create-user \
 ```
 
 `--role` defaults to `AGENT` and accepts `ADMIN | AGENT`. The script fails if the email already exists, hashes the password via `auth.$context.password.hash()`, and writes the `User` + credential `Account` rows in a transaction (same pattern as the seed).
+
+## Component tests (Vitest + React Testing Library)
+
+Client-side unit / component tests live alongside the code they cover in `client/src/**` as `*.test.tsx`. They run in jsdom via Vitest and never hit the network or a real server.
+
+### Configuration
+
+- `client/vitest.config.ts` `mergeConfig`s the existing `vite.config.ts` (so the `@/` alias resolves the same way the app does), then sets `environment: "jsdom"`, `setupFiles: ["./src/test/setup.ts"]`, and `css: true`.
+- `client/src/test/setup.ts` imports `@testing-library/jest-dom/vitest` (matchers like `toBeInTheDocument`) and runs `cleanup()` after each test.
+- `client/tsconfig.node.json` includes `vitest.config.ts` so the config file is type-checked under the Node project.
+- Test runner globals are **off** (`globals: false`) — import `describe`, `it`, `expect`, `vi` from `vitest` explicitly.
+
+### Running tests
+
+```bash
+bun run test                              # one-shot run from repo root
+bun run test:watch                        # watch mode
+bun --filter @helpdesk/client test        # same as above, scoped explicitly
+```
+
+`bun run typecheck` covers test files since they live under `client/src/`, so type errors in tests fail the workspace typecheck.
+
+### Conventions
+
+- **Mock the network at the axios layer**, not at `fetch`. The pattern (see `client/src/pages/UsersPage.test.tsx`) is `vi.mock("axios", () => ({ default: { get: vi.fn() } }))` plus `vi.mocked(axios.get)`. Don't reach for MSW unless a test genuinely needs request introspection beyond what `mockResolvedValueOnce` / `mockRejectedValueOnce` give you.
+- **Wrap each render in a fresh `QueryClient`** with `retry: false` — otherwise rejected-fetch tests pay 3× the default retry delay before the error renders. There's no shared `renderWithClient` helper yet; copy the inline one from `UsersPage.test.tsx` if you need it in a new test file (extract to `src/test/` only once a third file needs it).
+- **Route mocks by URL** when a component fires multiple parallel queries (see `StatusPage.test.tsx`'s `routeMock` helper). `mockResolvedValueOnce` chains are order-dependent and brittle when component declaration order changes.
+- **Prefer role-based and text queries** (`getByRole("heading")`, `findByText(...)`) over test IDs. The shadcn primitives expose `data-slot` attributes (e.g. `data-slot="skeleton"`, `data-slot="card"`); use those with `closest()` or `querySelectorAll` when you need to scope assertions to a card or assert that skeletons rendered.
+- **Use `findBy*` for anything that depends on a query resolving** — `useQuery`'s state transitions are async even when the mock resolves synchronously. `getBy*` will throw on first render.
+
+### Adding a new test
+
+1. Create `Foo.test.tsx` next to `Foo.tsx` in `client/src/`.
+2. `vi.mock("axios", () => ({ default: { get: vi.fn() /* + post, etc. as needed */ } }))` at the top of the file.
+3. Render through a `QueryClientProvider` with `retry: false`.
+4. Assert loading state (skeletons / spinners), success state (rendered data), error state (alert), and the request shape (`expect(mockedGet).toHaveBeenCalledWith(...)`).
 
 ## End-to-end tests (Playwright)
 

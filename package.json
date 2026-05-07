@@ -7,6 +7,8 @@
     "dev": "bun --filter '*' dev",
     "build": "bun --filter @helpdesk/client --filter @helpdesk/server build",
     "typecheck": "bun --filter '*' typecheck",
+    "test": "bun --filter @helpdesk/client test",
+    "test:watch": "bun --filter @helpdesk/client test:watch",
     "test:e2e": "bun --filter @helpdesk/e2e test",
     "test:e2e:ui": "bun --filter @helpdesk/e2e test:ui",
     "test:e2e:install": "bun --filter @helpdesk/e2e install-browsers"
