@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -23,12 +24,9 @@ export function UsersPage() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/users", { credentials: "include" })
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json() as Promise<{ users: User[] }>;
-      })
-      .then((d) => setUsers(d.users))
+    axios
+      .get<{ users: User[] }>("/api/users", { withCredentials: true })
+      .then((r) => setUsers(r.data.users))
       .catch((e: Error) => setError(e.message));
   }, []);
 

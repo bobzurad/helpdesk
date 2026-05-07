@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import axios from "axios";
 import {
   Card,
   CardContent,
@@ -19,20 +20,14 @@ export function StatusPage() {
   const [dbError, setDbError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/health")
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json() as Promise<Health>;
-      })
-      .then(setHealth)
+    axios
+      .get<Health>("/api/health")
+      .then((r) => setHealth(r.data))
       .catch((e: Error) => setError(e.message));
 
-    fetch("/api/db-health")
-      .then((r) => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json() as Promise<DbHealth>;
-      })
-      .then(setDbHealth)
+    axios
+      .get<DbHealth>("/api/db-health")
+      .then((r) => setDbHealth(r.data))
       .catch((e: Error) => setDbError(e.message));
   }, []);
 
