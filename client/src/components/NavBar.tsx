@@ -22,6 +22,9 @@ export function NavBar() {
             Users
           </Link>
         )}
+        <Link to="/status" className="text-sm hover:underline">
+          Status
+        </Link>
       </div>
       <div className="flex items-center gap-4">
         {session && (

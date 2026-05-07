@@ -1,6 +1,7 @@
 import { Route, Routes } from "react-router";
 import { LoginPage } from "./pages/LoginPage";
 import { HomePage } from "./pages/HomePage";
+import { StatusPage } from "./pages/StatusPage";
 import { UsersPage } from "./pages/UsersPage";
 import { NavBar } from "./components/NavBar";
 import { RequireAuth } from "./components/RequireAuth";
@@ -17,6 +18,15 @@ export function App() {
             <>
               <NavBar />
               <HomePage />
+            </>
+          }
+        />
+        <Route
+          path="/status"
+          element={
+            <>
+              <NavBar />
+              <StatusPage />
             </>
           }
         />
