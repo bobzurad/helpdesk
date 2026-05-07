@@ -2,4 +2,5 @@
 - [Auth fixtures and AGENT user creation](auth_fixtures.md) — how the seeded ADMIN and on-demand AGENT user are wired up
 - [shadcn/ui selector patterns](shadcn_selectors.md) — accessible-locator patterns that work for shadcn Alert/Button/Label/Card
 - [Better Auth probing from Playwright](better_auth_api.md) — endpoint shapes and cookie semantics observed in tests
-- [Running the e2e suite cleanly](running_e2e.md) — webServer constraints and conflicts with `bun run dev`
+- [Running the e2e suite cleanly](running_e2e.md) — webServer constraints; e2e uses distinct ports (:5174/:3002) so dev can run alongside
+- [Users feature e2e suite](users_feature_suite.md) — layout of tests/users/ and reusable patterns (row filter, column header assert, isolated request context)
