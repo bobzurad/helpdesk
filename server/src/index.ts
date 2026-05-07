@@ -18,14 +18,16 @@ app.use(helmet());
 app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.all("/api/auth/*splat", toNodeHandler(auth));
 app.use(express.json());
-app.use(
-  rateLimit({
-    windowMs: 60_000,
-    limit: 120,
-    standardHeaders: "draft-7",
-    legacyHeaders: false,
-  }),
-);
+if (process.env.NODE_ENV === "production") {
+  app.use(
+    rateLimit({
+      windowMs: 60_000,
+      limit: 120,
+      standardHeaders: "draft-7",
+      legacyHeaders: false,
+    }),
+  );
+}
 
 app.get("/api/health", (_req: Request, res: Response) => {
   res.json({ status: "ok", uptime: process.uptime() });

@@ -1,0 +1,22 @@
+{
+  "name": "@helpdesk/e2e",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "bun run db:reset && playwright test",
+    "test:ui": "bun run db:reset && playwright test --ui",
+    "test:headed": "bun run db:reset && playwright test --headed",
+    "db:reset": "bun --env-file=../.env scripts/reset-test-db.ts",
+    "install-browsers": "playwright install --with-deps",
+    "report": "playwright show-report",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.0",
+    "@types/bun": "^1.3.13",
+    "@types/node": "^25.6.0",
+    "dotenv": "^17.4.2",
+    "typescript": "^5.6.0"
+  }
+}

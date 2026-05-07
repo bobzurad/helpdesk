@@ -16,7 +16,8 @@ AI-powered ticket management system. See `project-scope.md`, `tech-stack.md`, an
 ```
 helpdesk/
 ├── client/   # React + Vite + TypeScript
-└── server/   # Express + TypeScript (Bun runtime)
+├── server/   # Express + TypeScript (Bun runtime)
+└── e2e/      # Playwright end-to-end tests
 ```
 
 The repo is a Bun workspace monorepo — install once at the root with `bun install`.
@@ -30,6 +31,7 @@ bun install            # install all workspace deps
 bun run dev            # both apps in parallel (bun --filter '*' dev)
 bun run build          # build both packages
 bun run typecheck      # tsc --noEmit across both packages
+bun run test:e2e       # run Playwright e2e tests (resets the test DB first)
 ```
 
 Per-workspace:
@@ -37,6 +39,7 @@ Per-workspace:
 ```bash
 bun --filter @helpdesk/server dev
 bun --filter @helpdesk/client dev
+bun --filter @helpdesk/e2e test
 ```
 
 Dev URLs: server `http://localhost:3001`, client `http://localhost:5173`. The Vite dev server proxies `/api/*` to the Express server (see `client/vite.config.ts`).
@@ -60,7 +63,7 @@ Database-backed sessions via [Better Auth](https://www.better-auth.com/) with th
 - **Middleware order matters**: `app.all("/api/auth/*splat", toNodeHandler(auth))` MUST be registered **before** `app.use(express.json())`. Better Auth needs the raw request body; if `express.json()` runs first, auth requests break silently.
 - CORS uses an explicit allowlist driven by `CORS_ORIGINS` (comma-separated, defaults to `http://localhost:5173`) with `credentials: true` so the session cookie works across the Vite dev origin. Don't switch this back to `origin: true` — that reflects any origin and breaks the CSRF posture for non-Better-Auth routes.
 - Trusted origins are read from `BETTER_AUTH_TRUSTED_ORIGINS` (comma-separated, defaults to `http://localhost:5173`).
-- The Express app also mounts `helmet()` for baseline security headers and a global `express-rate-limit` (120 req/min/IP) on non-auth routes. Better Auth handles its own rate limiting on `/api/auth/*`.
+- The Express app also mounts `helmet()` for baseline security headers and, **only when `NODE_ENV === "production"`**, a global `express-rate-limit` (120 req/min/IP) on non-auth routes. The limiter is off in dev and test so e2e suites and local iteration aren't throttled. Better Auth handles its own rate limiting on `/api/auth/*` (also production-gated by Better Auth).
 
 ### Client (`client/src/lib/auth-client.ts`)
 
@@ -96,6 +99,41 @@ bun --filter @helpdesk/server create-user \
 ```
 
 `--role` defaults to `AGENT` and accepts `ADMIN | AGENT`. The script fails if the email already exists, hashes the password via `auth.$context.password.hash()`, and writes the `User` + credential `Account` rows in a transaction (same pattern as the seed).
+
+## End-to-end tests (Playwright)
+
+E2E tests live in the `e2e/` workspace and run against an isolated Postgres database (`helpdesk_test`) so they never touch dev data.
+
+### Configuration
+
+- `e2e/playwright.config.ts` defines two `webServer` entries that boot the real server and client (`bun --filter` against the existing dev scripts). The server entry overrides `DATABASE_URL` with `TEST_DATABASE_URL` from `.env`, plus `CORS_ORIGINS` / `BETTER_AUTH_TRUSTED_ORIGINS` so cookies work against the test client URL.
+- `reuseExistingServer: false` — Playwright always boots fresh server processes pointing at the test DB, so it's safe to have `bun run dev` running alongside (the dev server stays on the dev DB).
+- `workers: 1`, `fullyParallel: false` — single-worker by default since tests share one database. Tweak per-suite once tests exist.
+- `baseURL: http://localhost:5173` (override with `E2E_CLIENT_URL`). Server URL via `E2E_SERVER_URL` (default `http://localhost:3001`).
+
+### Test database lifecycle
+
+The test DB URL must contain `test` in its name — `e2e/scripts/reset-test-db.ts` refuses otherwise. The reset script:
+
+1. Connects to the postgres `postgres` admin DB via `Bun.SQL` and creates `helpdesk_test` if it doesn't exist.
+2. Connects to `helpdesk_test` and runs `DROP SCHEMA public CASCADE; CREATE SCHEMA public;` to wipe data.
+3. Runs `prisma migrate deploy` (not `migrate reset` — that's blocked by Prisma's AI safeguard).
+4. Runs `server/prisma/seed.ts` directly with `DATABASE_URL` and `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` overridden by the `TEST_*` values from `.env`. The seed validates password strength, so the test password must be ≥12 chars and not start with `password`/`change_me`.
+
+`bun run test:e2e` runs the reset script before invoking `playwright test`, so every run starts from a clean schema with the seeded admin. To reset by hand: `bun --filter @helpdesk/e2e db:reset`.
+
+The seeded admin's credentials live in `.env` as `TEST_SEED_ADMIN_EMAIL` / `TEST_SEED_ADMIN_PASSWORD` (defaults: `admin@test.local` / `test-admin-password-12345`). Tests should read these from env rather than hardcoding.
+
+### First-time setup
+
+```bash
+bun install
+bun run test:e2e:install   # downloads Chromium + system deps (one-time)
+docker compose up -d       # postgres must be running
+bun run test:e2e
+```
+
+For additional test users beyond the seeded admin, call the create-user script or hit the Better Auth API from a Playwright fixture — don't reuse `prisma db seed`, which only creates the admin.
 
 ## Fetching up-to-date docs (Context7)
 
