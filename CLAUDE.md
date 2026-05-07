@@ -135,6 +135,14 @@ bun run test:e2e
 
 For additional test users beyond the seeded admin, call the create-user script or hit the Better Auth API from a Playwright fixture — don't reuse `prisma db seed`, which only creates the admin.
 
+### Writing tests — delegate to `playwright-e2e-author`
+
+When the user asks to **write, expand, or refactor Playwright tests** (new specs, page objects, fixtures, storage-state auth, coverage for a specific flow), delegate to the **`playwright-e2e-author`** agent via the Agent tool. It's project-scoped (lives in `.claude/agents/playwright-e2e-author.md`), maintains its own memory of test patterns adopted in this repo, and knows the conventions above (Bun, ports, Better Auth, seeded admin).
+
+Don't delegate for: bare-metal Playwright config tweaks the user is driving line-by-line, debugging a single failing assertion the user has already isolated, or non-test work that merely touches the `e2e/` directory. Inline those.
+
+When delegating, brief the agent with: which user flow(s) to cover, whether the flow needs an authenticated session, and any seed data assumptions. The agent will use the test DB and seeded admin set up above unless told otherwise.
+
 ## Fetching up-to-date docs (Context7)
 
 Use the **Context7 MCP** to fetch current documentation whenever the user asks about a library, framework, SDK, API, CLI tool, or cloud service — even well-known ones (React, Express, Vite, Prisma, Tailwind, Bun, etc.). Training data may be stale; prefer Context7 over web search for library docs.
