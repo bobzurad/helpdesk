@@ -50,6 +50,7 @@ Dev URLs: server `http://localhost:3001`, client `http://localhost:5173`. The Vi
 - Server uses native ESM (`"type": "module"`); use `import` syntax, not `require`.
 - Client uses `tsconfig` project references (`tsconfig.app.json` for `src/`, `tsconfig.node.json` for `vite.config.ts`).
 - API routes are prefixed with `/api/` so the Vite proxy matches them.
+- **Client data fetching**: use `axios` for HTTP and `@tanstack/react-query` (`useQuery` / `useMutation`) for server state — don't introduce raw `fetch` in `client/src/`. The `QueryClientProvider` is wired in `client/src/main.tsx`. Pass `withCredentials: true` on axios calls that hit authenticated routes so the Better Auth session cookie is sent.
 
 ## Authentication
 

@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -14,22 +14,15 @@ type Health = { status: string; uptime: number };
 type DbHealth = { status: string; db: string };
 
 export function StatusPage() {
-  const [health, setHealth] = useState<Health | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [dbHealth, setDbHealth] = useState<DbHealth | null>(null);
-  const [dbError, setDbError] = useState<string | null>(null);
+  const health = useQuery({
+    queryKey: ["health"],
+    queryFn: async () => (await axios.get<Health>("/api/health")).data,
+  });
 
-  useEffect(() => {
-    axios
-      .get<Health>("/api/health")
-      .then((r) => setHealth(r.data))
-      .catch((e: Error) => setError(e.message));
-
-    axios
-      .get<DbHealth>("/api/db-health")
-      .then((r) => setDbHealth(r.data))
-      .catch((e: Error) => setDbError(e.message));
-  }, []);
+  const dbHealth = useQuery({
+    queryKey: ["db-health"],
+    queryFn: async () => (await axios.get<DbHealth>("/api/db-health")).data,
+  });
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 p-8">
@@ -37,14 +30,14 @@ export function StatusPage() {
       <StatusCard
         title="Server status"
         description="GET /api/health"
-        error={error}
-        data={health}
+        error={health.error?.message ?? null}
+        data={health.data ?? null}
       />
       <StatusCard
         title="DB status"
         description="GET /api/db-health"
-        error={dbError}
-        data={dbHealth}
+        error={dbHealth.error?.message ?? null}
+        data={dbHealth.data ?? null}
       />
     </main>
   );

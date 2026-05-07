@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
 import axios from "axios";
+import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
@@ -20,15 +20,15 @@ type User = {
 };
 
 export function UsersPage() {
-  const [users, setUsers] = useState<User[] | null>(null);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    axios
-      .get<{ users: User[] }>("/api/users", { withCredentials: true })
-      .then((r) => setUsers(r.data.users))
-      .catch((e: Error) => setError(e.message));
-  }, []);
+  const { data: users, error } = useQuery({
+    queryKey: ["users"],
+    queryFn: async () =>
+      (
+        await axios.get<{ users: User[] }>("/api/users", {
+          withCredentials: true,
+        })
+      ).data.users,
+  });
 
   return (
     <main className="mx-auto max-w-3xl space-y-6 p-8">
@@ -36,7 +36,7 @@ export function UsersPage() {
       {error && (
         <Alert variant="destructive">
           <AlertTitle>Error</AlertTitle>
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription>{error.message}</AlertDescription>
         </Alert>
       )}
       {!error && !users && (
