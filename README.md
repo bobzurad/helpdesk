@@ -7,6 +7,7 @@ Full-stack monorepo: Express + React + TypeScript, powered by Bun. This project 
 ```
 helpdesk/
 ├── client/   # React + Vite + TypeScript
+├── e2e/      # Playwright End to End tests
 └── server/   # Express + TypeScript (Bun runtime)
 ```
 
@@ -15,12 +16,6 @@ helpdesk/
 This project requires the following to be installed:
 * Docker
 * [bun](https://bun.com/package-manager) 
-
-## Setup
-
-```bash
-bun install
-```
 
 ### Data Persistence
 
@@ -31,9 +26,23 @@ For data persistence, this project uses Docker containers for PostgreSQL and pgA
   * create a connection to the server at `postgres:5432`
 * see `.env` for credentials
 
+Tip: If running Linux, to access PostgreSQL from pgAdmin, connect to the IP address listed when inspecting the postgresql container `docker inspect <container-name>`
+
+## Setup
+
+To setup the project for first time use, run the following commands (after starting the docker containers):
+
+```bash
+bun install
+bun --filter @helpdesk/server db:generate
+bun --filter @helpdesk/server db:migrate
+bun --filter @helpdesk/server create-user --email admin@example.com --password=password123 --name="Admin Adam" --role=ADMIN
+bunx playwright install chromium
+```
+
 ## Develop
 
-Run both apps in parallel:
+To run the client and server apps in parallel:
 
 ```bash
 bun run dev
@@ -58,7 +67,7 @@ bun run typecheck   # typecheck both packages
 
 ## End to End Tests
 
-This project uses [Playwright](https://playwright.dev/) for end to end testing. Before running the tests for the first time, you must run: `bun run test:e2e:install`
+This project uses [Playwright](https://playwright.dev/) for end to end testing
 
 Test scripts can be run with the following commands:
 
