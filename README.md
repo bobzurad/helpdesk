@@ -33,6 +33,7 @@ Tip: If running Linux, to access PostgreSQL from pgAdmin, connect to the IP addr
 To setup the project for first time use, run the following commands (after starting the docker containers):
 
 ```bash
+cp .env.example .env
 bun install
 bun --filter @helpdesk/server db:generate
 bun --filter @helpdesk/server db:migrate
@@ -80,7 +81,7 @@ bun run test:e2e:ui
 
 To create users, run the following script:
 ```bash
-bun --filter @helpdesk/server create-user --email=agent@example.com --password=password123 --name="Agent Smith"                                  
-```        
+bun --filter @helpdesk/server create-user --email=agent@example.com --password=password123 --name="Agent Smith"
+```
 
---role defaults to AGENT; pass --role=ADMIN to override. Fails if the email is already in use.        
+--role defaults to AGENT; pass --role=ADMIN to override. Fails if the email is already in use.
