@@ -30,11 +30,13 @@ type FormErrors = {
 
 const EMPTY_FORM = { name: "", email: "", password: "" };
 
-function validate(form: typeof EMPTY_FORM): FormErrors {
+export function validate(form: typeof EMPTY_FORM): FormErrors {
   const errs: FormErrors = {};
-  if (form.name.trim().length < 3) errs.name = "Name must be at least 3 characters";
+  if (form.name.trim().length < 3)
+    errs.name = "Name must be at least 3 characters";
   if (!form.email.includes("@")) errs.email = "Valid email is required";
-  if (form.password.length < 8) errs.password = "Password must be at least 8 characters";
+  if (form.password.length < 8)
+    errs.password = "Password must be at least 8 characters";
   return errs;
 }
 
@@ -43,6 +45,7 @@ export function CreateUserDialog() {
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const [submitted, setSubmitted] = useState(false);
 
   const createUser = useMutation({
     mutationFn: async (data: typeof EMPTY_FORM) =>
@@ -58,23 +61,33 @@ export function CreateUserDialog() {
     if (!next) {
       setForm(EMPTY_FORM);
       setFormErrors({});
+      setSubmitted(false);
       createUser.reset();
     }
   }
 
+  function handleChange(field: keyof typeof EMPTY_FORM, value: string) {
+    const next = { ...form, [field]: value };
+    setForm(next);
+    if (submitted) setFormErrors(validate(next));
+  }
+
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setSubmitted(true);
     const errs = validate(form);
     if (Object.keys(errs).length > 0) {
       setFormErrors(errs);
       return;
     }
-    setFormErrors({});
     createUser.mutate(form);
   }
 
-  const serverError =
-    createUser.error instanceof Error ? createUser.error.message : null;
+  const serverError = createUser.error
+    ? (axios.isAxiosError(createUser.error)
+        ? createUser.error.response?.data?.error
+        : null) ?? createUser.error.message
+    : null;
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -97,8 +110,9 @@ export function CreateUserDialog() {
             <Input
               id="name"
               value={form.name}
-              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              onChange={(e) => handleChange("name", e.target.value)}
               placeholder="Jane Smith"
+              aria-invalid={!!formErrors.name}
             />
             {formErrors.name && (
               <p className="text-sm text-destructive">{formErrors.name}</p>
@@ -110,8 +124,9 @@ export function CreateUserDialog() {
               id="email"
               type="email"
               value={form.email}
-              onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+              onChange={(e) => handleChange("email", e.target.value)}
               placeholder="jane@example.com"
+              aria-invalid={!!formErrors.email}
             />
             {formErrors.email && (
               <p className="text-sm text-destructive">{formErrors.email}</p>
@@ -123,8 +138,9 @@ export function CreateUserDialog() {
               id="password"
               type="password"
               value={form.password}
-              onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+              onChange={(e) => handleChange("password", e.target.value)}
               placeholder="Min 8 characters"
+              aria-invalid={!!formErrors.password}
             />
             {formErrors.password && (
               <p className="text-sm text-destructive">{formErrors.password}</p>
