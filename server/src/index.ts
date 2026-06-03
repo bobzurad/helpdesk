@@ -9,7 +9,7 @@ import rateLimit from "express-rate-limit";
 import { toNodeHandler } from "better-auth/node";
 import { prisma } from "./db.ts";
 import { auth } from "./auth.ts";
-import { requireAdmin } from "./middleware/requireAdmin.ts";
+import { usersRouter } from "./routes/users.ts";
 
 const app = express();
 const PORT = Number(process.env.PORT ?? 3001);
@@ -30,7 +30,7 @@ if (process.env.NODE_ENV === "production") {
       limit: 120,
       standardHeaders: "draft-7",
       legacyHeaders: false,
-    }),
+    })
   );
 }
 
@@ -47,23 +47,7 @@ app.get("/api/hello", (_req: Request, res: Response) => {
   res.json({ message: "Hello from Express + Bun" });
 });
 
-app.get(
-  "/api/users",
-  requireAdmin,
-  async (_req: Request, res: Response) => {
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        createdAt: true,
-      },
-      orderBy: { createdAt: "asc" },
-    });
-    res.json({ users });
-  },
-);
+app.use("/api/users", usersRouter);
 
 const errorHandler: ErrorRequestHandler = (err, req, res, next) => {
   if (res.headersSent) return next(err);

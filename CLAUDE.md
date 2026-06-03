@@ -7,6 +7,7 @@ AI-powered ticket management system. See `project-scope.md`, `tech-stack.md`, an
 - **Runtime / package manager**: Bun (workspaces)
 - **Server**: Express 5 + TypeScript on Bun (`server/`)
 - **Client**: React 19 + Vite 7 + TypeScript (`client/`)
+- **Validation**: Zod — use for all request body / API input validation on the server
 - **Database**: PostgreSQL (planned)
 - **ORM**: Prisma (planned)
 - **AI**: Claude API (planned, for classification / summaries / suggested replies)
